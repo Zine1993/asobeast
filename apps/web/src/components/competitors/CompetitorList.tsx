@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, Trash2 } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { CompetitorItem } from "@asobeast/shared";
 import { AppIcon } from "@/components/AppIcon";
@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { removeCompetitor } from "@/lib/api";
-import { invalidateCompetitorMutation } from "@/lib/queries";
+import { appDetailOptions, invalidateCompetitorMutation } from "@/lib/queries";
 import {
   formatNumber,
   formatPrice,
@@ -28,6 +28,7 @@ import {
   storeLabel,
 } from "@/lib/format";
 import { useSingleFlight } from "@/lib/single-flight";
+import { storeUrl } from "@/lib/store-url";
 import { exportCompetitors } from "./competitor-csv";
 
 function CompetitorCard({
@@ -41,6 +42,7 @@ function CompetitorCard({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const name = competitor.name ?? "Untitled app";
   const snapshot = competitor.latestSnapshot;
+  const { data: detail } = useQuery(appDetailOptions(competitor.id));
 
   const mutation = useMutation({
     mutationFn: () => removeCompetitor(id, competitor.id),
@@ -80,6 +82,19 @@ function CompetitorCard({
             ) : null}
             {snapshot?.version ? <span>v{snapshot.version}</span> : null}
           </div>
+          {detail ? (
+            <Button variant="outline" size="sm" className="w-fit" asChild>
+              <a
+                href={storeUrl(detail.store, detail.storeAppId, detail.country)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open ${name} in ${storeLabel(detail.store)} (opens in a new tab)`}
+              >
+                <ExternalLink />
+                Store page
+              </a>
+            </Button>
+          ) : null}
         </div>
         <Button
           variant="ghost"
